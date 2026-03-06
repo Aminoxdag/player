@@ -1,43 +1,332 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>Untitled</title>
-  <link rel="stylesheet" href="./style.css">
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player with Ambient Glow</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>VLC Ultimate Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --vlc-orange: #ff9500; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; color: white; }
+        
+        #playerContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* التحكم القوي في أبعاد الفيديو */
+        #mainVideo {
+            width: 100% !important;
+            height: 100% !important;
+            transition: object-fit 0.2s ease;
+            display: block;
+        }
+
+        .fit-contain { object-fit: contain !important; } 
+        .fit-fill { object-fit: fill !important; }       
+        .fit-cover { object-fit: cover !important; }     
+
+        .ui-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(rgba(0,0,0,0.7) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.8) 100%);
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+
+        .ui-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        /* شريط التقدم - يعمل من اليسار لليمين */
+        .seek-container {
+            width: 100%;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            direction: ltr !important; 
+        }
+
+        .seek-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            position: relative;
+        }
+
+        #progFill {
+            height: 100%;
+            background: var(--vlc-orange);
+            width: 0%;
+            border-radius: 3px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        #progFill::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        .url-box {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 95%;
+            max-width: 600px;
+        }
+
+        .btn-skip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.8);
+            transition: 0.2s;
+        }
+        .btn-skip i { font-size: 22px; margin-bottom: 2px; }
+        .btn-skip:active { color: var(--vlc-orange); transform: scale(0.9); }
+
+        .badge-aspect {
+            background: rgba(255, 149, 0, 0.2);
+            color: var(--vlc-orange);
+            border: 1px solid var(--vlc-orange);
+            font-weight: bold;
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <div class="url-input">
-        <input type="text" id="videoUrl" placeholder="Enter video URL">
-        <button id="loadVideo">Load</button>
-    </div>
-    <div class="player">
-        <video id="video" controls autoplay loop muted>
-            <source src="https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p@0.0.6/video.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        <canvas id="myCanvas"></canvas>
-    </div>
-    <button aria-label="Toggle fullscreen" class="fullscreen-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16">
-            <path fill="currentColor" d="M3.75 3a.75.75 0 0 0-.75.75V5.5a.5.5 0 0 1-1 0V3.75C2 2.784 2.784 2 3.75 2H5.5a.5.5 0 0 1 0 1H3.75ZM10 2.5a.5.5 0 0 1 .5-.5h1.75c.966 0 1.75.784 1.75 1.75V5.5a.5.5 0 0 1-1 0V3.75a.75.75 0 0 0-.75-.75H10.5a.5.5 0 0 1-.5-.5ZM2.5 10a.5.5 0 0 1 .5.5v1.75c0 .414.336.75.75.75H5.5a.5.5 0 0 1 0 1H3.75A1.75 1.75 0 0 1 2 12.25V10.5a.5.5 0 0 1 .5-.5Zm11 0a.5.5 0 0 1 .5.5v1.75A1.75 1.75 0 0 1 12.25 14H10.5a.5.5 0 0 1 0-1h1.75a.75.75 0 0 0 .75-.75V10.5a.5.5 0 0 1 .5-.5Z"/>
-        </svg>
-    </button>
-    <script src="script.js"></script>
-</body>
-</html>
-<!-- partial -->
-  <script  src="./script.js"></script>
 
+<div id="playerContainer">
+    <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline>
+        <source src="https://cdn.cinema-blue.icu/blk/BLACKED Alexa Grace.mp4" type="video/mp4">
+    </video>
+
+    <div id="ui" class="ui-overlay">
+        <!-- الأعلى: الرابط والخيارات -->
+        <div class="p-4 flex flex-col items-center gap-4">
+            <div class="url-box">
+                <input type="text" id="videoUrl" 
+                       class="bg-transparent flex-1 text-xs outline-none border-none text-left font-mono text-white/90"
+                       dir="ltr" value="https://cdn.cinema-blue.icu/blk/BLACKED Alexa Grace.mp4">
+                <button onclick="updateSource()" class="bg-orange-500 text-black text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-tighter">تحديث</button>
+            </div>
+            
+            <div class="w-full flex justify-between items-center px-4">
+                <span class="text-[10px] font-bold tracking-widest opacity-50">VLC ULTIMATE PRO</span>
+                <div class="flex gap-4 items-center">
+                    <div onclick="cycleAspect()" class="badge-aspect" id="aspectLabel">وضع العرض: FIT</div>
+                    <button onclick="toggleLock()" class="text-white/80 text-lg"><i id="lockIcon" class="fas fa-unlock"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- الجزء السفلي: التحكم والوقت -->
+        <div class="p-6">
+            <!-- التوقيت -->
+            <div class="flex justify-between text-[11px] font-mono mb-1 px-1" dir="ltr">
+                <span id="currentTime">00:00</span>
+                <span id="durationTime">00:00</span>
+            </div>
+
+            <!-- شريط التقدم -->
+            <div class="seek-container" id="seekWrapper">
+                <div class="seek-bar">
+                    <div id="progFill"></div>
+                </div>
+            </div>
+
+            <!-- أزرار التحكم -->
+            <div class="flex items-center justify-between mt-4">
+                <div class="flex items-center gap-8">
+                    <button onclick="togglePlay()" id="playBtn" class="text-4xl text-white hover:text-orange-500 transition"><i class="fas fa-play"></i></button>
+                    
+                    <button onclick="skip(-10)" class="btn-skip">
+                        <i class="fas fa-undo-alt"></i>
+                        <span>10-</span>
+                    </button>
+                    
+                    <button onclick="skip(10)" class="btn-skip">
+                        <i class="fas fa-redo-alt"></i>
+                        <span>10+</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <select onchange="video.playbackRate = this.value" class="bg-black/50 text-[10px] border border-white/20 rounded-full px-3 py-1 outline-none">
+                        <option value="1">1.0x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2.0x</option>
+                    </select>
+                    <button onclick="requestFullScreen()" class="text-orange-500 text-2xl hover:scale-110 transition-transform">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('mainVideo');
+    const ui = document.getElementById('ui');
+    const progFill = document.getElementById('progFill');
+    const seekWrapper = document.getElementById('seekWrapper');
+    const aspectLabel = document.getElementById('aspectLabel');
+    const urlInput = document.getElementById('videoUrl');
+    
+    let hideTimer;
+    let aspectIndex = 0; 
+    let isLocked = false;
+
+    function showUI() {
+        if (isLocked) return;
+        ui.classList.remove('ui-hidden');
+        clearTimeout(hideTimer);
+        if (!video.paused) {
+            hideTimer = setTimeout(() => ui.classList.add('ui-hidden'), 3000);
+        }
+    }
+
+    document.getElementById('playerContainer').addEventListener('mousemove', showUI);
+    document.getElementById('playerContainer').addEventListener('touchstart', showUI);
+
+    function togglePlay() {
+        if (video.paused) {
+            video.play();
+            document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            video.pause();
+            document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i>';
+        }
+        showUI();
+    }
+
+    video.addEventListener('click', togglePlay);
+
+    video.ontimeupdate = () => {
+        const percent = (video.currentTime / video.duration) * 100;
+        progFill.style.width = percent + '%';
+        document.getElementById('currentTime').innerText = formatTime(video.currentTime);
+        document.getElementById('durationTime').innerText = formatTime(video.duration || 0);
+    };
+
+    function formatTime(s) {
+        let m = Math.floor(s / 60);
+        let sec = Math.floor(s % 60);
+        return (m < 10 ? '0'+m : m) + ":" + (sec < 10 ? '0'+sec : sec);
+    }
+
+    function seek(e) {
+        const rect = seekWrapper.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+        const x = clientX - rect.left;
+        let pos = x / rect.width;
+        if (pos < 0) pos = 0; if (pos > 1) pos = 1;
+        video.currentTime = pos * video.duration;
+    }
+
+    seekWrapper.onmousedown = (e) => {
+        seek(e);
+        window.onmousemove = seek;
+        window.onmouseup = () => window.onmousemove = null;
+    };
+    seekWrapper.ontouchmove = seek;
+
+    function cycleAspect() {
+        aspectIndex = (aspectIndex + 1) % 3;
+        video.classList.remove('fit-contain', 'fit-fill', 'fit-cover');
+        
+        if (aspectIndex === 0) {
+            video.classList.add('fit-contain');
+            aspectLabel.innerText = "وضع العرض: FIT";
+        } else if (aspectIndex === 1) {
+            video.classList.add('fit-fill');
+            aspectLabel.innerText = "وضع العرض: STRETCH";
+        } else if (aspectIndex === 2) {
+            video.classList.add('fit-cover');
+            aspectLabel.innerText = "وضع العرض: ZOOM";
+        }
+        showUI();
+    }
+
+    function updateSource() {
+        const url = urlInput.value.trim();
+        if (url) {
+            video.src = url;
+            video.load();
+            video.play();
+            showUI();
+        }
+    }
+
+    function requestFullScreen() {
+        const container = document.getElementById('playerContainer');
+        if (!document.fullscreenElement) {
+            if (container.requestFullscreen) container.requestFullscreen();
+            else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+            
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    function skip(val) {
+        video.currentTime += val;
+        showUI();
+    }
+
+    function toggleLock() {
+        isLocked = !isLocked;
+        document.getElementById('lockIcon').className = isLocked ? "fas fa-lock text-orange-500" : "fas fa-unlock";
+        if (isLocked) ui.classList.add('ui-hidden');
+        else showUI();
+    }
+
+    video.onloadedmetadata = () => {
+        document.getElementById('durationTime').innerText = formatTime(video.duration);
+    };
+
+    window.onkeydown = (e) => {
+        if (document.activeElement === urlInput) return;
+        if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+        if (e.code === 'KeyF') requestFullScreen();
+        if (e.code === 'ArrowRight') skip(10);
+        if (e.code === 'ArrowLeft') skip(-10);
+    };
+</script>
 </body>
 </html>
