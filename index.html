@@ -194,7 +194,7 @@
 
 <div id="playerContainer">
     <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline>
-        <source src="https://cdn.cinema-blue.icu/blk/BLACKED Alexa Grace.mp4" type="video/mp4">
+        <!-- سيتم تحميل المصدر عبر الجافا سكريبت -->
     </video>
 
     <div id="ui" class="ui-overlay">
@@ -294,6 +294,18 @@
     }
     fetchLinks();
 
+    // كود التشغيل التلقائي من الـ Hash (الذي طلبته)
+    window.onload = function() {
+        const videoUrlFromHash = decodeURIComponent(window.location.hash.substring(1));
+        if (videoUrlFromHash && videoUrlFromHash.startsWith('http')) {
+            const inputField = document.getElementById('videoUrl');
+            if (inputField) {
+                inputField.value = videoUrlFromHash;
+                updateSource(); // تشغيل الفيديو فوراً
+            }
+        }
+    }
+
     // إدارة حالة الكتابة لمنع اختفاء الواجهة
     urlInput.onfocus = () => { 
         isTyping = true; 
@@ -302,7 +314,6 @@
     };
     urlInput.onblur = () => { 
         isTyping = false; 
-        // تأخير بسيط لإغلاق النتائج إذا لم يتم النقر عليها
         setTimeout(() => { searchResults.style.display = 'none'; }, 200);
         showUI(); 
     };
@@ -398,7 +409,7 @@
             video.load();
             video.play().then(() => {
                 document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-pause"></i>';
-            });
+            }).catch(e => console.log("Auto-play blocked or error"));
             showUI();
         }
     }
