@@ -48,48 +48,85 @@
         .search-wrapper {
             position: relative;
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             z-index: 1001;
         }
 
         .url-box {
             background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid rgba(255,255,255,0.15);
             border-radius: 50px;
-            padding: 6px 16px;
+            padding: 4px 6px;
             display: flex;
             align-items: center;
-            gap: 12px;
             width: 100%;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
+
+        .library-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 149, 0, 0.2);
+            color: var(--vlc-orange);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            margin-left: 10px;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+        .library-btn:active { transform: scale(0.9); background: var(--vlc-orange); color: black; }
+
+        .url-input {
+            background: transparent;
+            flex: 1;
+            font-size: 13px;
+            outline: none;
+            border: none;
+            text-align: right;
+            color: white;
+            padding: 0 10px;
+        }
+
+        .play-action-btn {
+            background: var(--vlc-orange);
+            color: black;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 8px 18px;
+            border-radius: 50px;
+            transition: 0.2s;
+        }
+        .play-action-btn:active { transform: scale(0.95); opacity: 0.9; }
 
         .search-results {
             position: absolute;
-            top: 110%;
-            left: 0;
-            right: 0;
-            background: rgba(15, 15, 15, 0.98);
+            top: 115%;
+            left: 10px;
+            right: 10px;
+            background: rgba(10, 10, 10, 0.98);
             backdrop-filter: blur(25px);
-            border-radius: 18px;
-            max-height: 300px;
+            border-radius: 20px;
+            max-height: 280px;
             overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
             display: none;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
 
         .search-item {
-            padding: 14px 20px;
+            padding: 15px 20px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
             font-size: 13px;
-            transition: all 0.2s;
+            transition: 0.2s;
             text-align: right;
-            color: #ccc;
+            color: #ddd;
         }
-
-        .search-item:hover { background: var(--vlc-orange); color: black; font-weight: bold; }
+        .search-item:hover { background: var(--vlc-orange); color: black; font-weight: 600; }
 
         .seek-container {
             width: 100%;
@@ -103,7 +140,7 @@
 
         .seek-bar {
             width: 100%;
-            height: 6px;
+            height: 5px;
             background: rgba(255,255,255,0.15);
             border-radius: 10px;
             position: relative;
@@ -129,14 +166,14 @@
             height: 16px;
             background: white;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 0 12px rgba(0,0,0,0.6);
         }
 
         .badge-aspect {
-            background: rgba(255, 149, 0, 0.15);
-            color: var(--vlc-orange);
-            border: 1px solid rgba(255, 149, 0, 0.4);
-            font-weight: bold;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 500;
             font-size: 11px;
             padding: 6px 14px;
             border-radius: 20px;
@@ -148,12 +185,9 @@
             flex-direction: column;
             align-items: center;
             font-size: 10px;
-            font-weight: bold;
             color: rgba(255,255,255,0.7);
-            transition: 0.2s;
         }
         .btn-skip i { font-size: 24px; margin-bottom: 3px; }
-        .btn-skip:active { color: var(--vlc-orange); transform: scale(0.9); }
     </style>
 </head>
 <body>
@@ -164,32 +198,37 @@
     </video>
 
     <div id="ui" class="ui-overlay">
-        <!-- البحث والخيارات -->
-        <div class="p-4 flex flex-col items-center gap-4">
+        <!-- البحث المدمج في الأعلى -->
+        <div class="p-4 pt-6 flex flex-col items-center gap-4">
             <div class="search-wrapper">
                 <div class="url-box">
-                    <i class="fas fa-play-circle text-orange-500 text-lg"></i>
+                    <!-- زر المكتبة المدمج -->
+                    <button onclick="window.open('https://aminoxdag.github.io/BLACKED-POMF/', '_blank')" class="library-btn" title="المكتبة">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    
                     <input type="text" id="videoUrl" 
-                           class="bg-transparent flex-1 text-xs outline-none border-none text-right text-white/90"
+                           class="url-input"
                            placeholder="ابحث عن فيديو..." 
                            autocomplete="off">
-                    <button onclick="updateSource()" class="bg-orange-500 text-black text-[11px] font-bold px-5 py-2 rounded-full shadow-lg shadow-orange-500/20">تشغيل</button>
+                    
+                    <button id="mainActionBtn" onclick="updateSource()" class="play-action-btn">تشغيل</button>
                 </div>
                 <div id="searchResults" class="search-results"></div>
             </div>
             
             <div class="w-full flex justify-between items-center px-4">
-                <span class="text-[10px] font-bold tracking-[3px] opacity-40 uppercase">VLC PRO ULTIMATE</span>
+                <div class="text-[10px] font-bold tracking-[2px] opacity-30 uppercase">Professional Cinema</div>
                 <div class="flex gap-4 items-center">
                     <div onclick="cycleAspect()" class="badge-aspect" id="aspectLabel">وضع العرض: FIT</div>
-                    <button onclick="toggleLock()" class="text-white/80 text-xl"><i id="lockIcon" class="fas fa-unlock"></i></button>
+                    <button onclick="toggleLock()" class="text-white/60 text-xl"><i id="lockIcon" class="fas fa-unlock"></i></button>
                 </div>
             </div>
         </div>
 
         <!-- التحكم السفلي -->
         <div class="p-6">
-            <div class="flex justify-between text-[12px] font-mono mb-2 px-1 opacity-80" dir="ltr">
+            <div class="flex justify-between text-[12px] font-mono mb-2 px-1 opacity-70" dir="ltr">
                 <span id="currentTime">00:00</span>
                 <span id="durationTime">00:00</span>
             </div>
@@ -202,7 +241,9 @@
 
             <div class="flex items-center justify-between mt-5">
                 <div class="flex items-center gap-10">
-                    <button onclick="togglePlay()" id="playBtn" class="text-5xl text-white hover:text-orange-400 transition transform active:scale-90"><i class="fas fa-play"></i></button>
+                    <button onclick="togglePlay()" id="playBtnSmall" class="text-4xl text-white hover:text-orange-400 transition transform active:scale-90">
+                        <i class="fas fa-play"></i>
+                    </button>
                     <button onclick="skip(-10)" class="btn-skip"><i class="fas fa-backward"></i><span>10-</span></button>
                     <button onclick="skip(10)" class="btn-skip"><i class="fas fa-forward"></i><span>10+</span></button>
                 </div>
@@ -241,18 +282,31 @@
     let aspectIndex = 0; 
     let isLocked = false;
     let videoLinks = [];
+    let isTyping = false; 
 
-    // جلب الروابط وتخزينها
+    // جلب الروابط
     async function fetchLinks() {
         try {
             const response = await fetch('https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/cytube_links.txt');
             const text = await response.text();
             videoLinks = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        } catch (e) { console.error("Error fetching data"); }
+        } catch (e) { console.error("Data fetch error"); }
     }
     fetchLinks();
 
-    // البحث مع استثناء الروابط الطويلة وعرض الاسم فقط
+    // إدارة حالة الكتابة لمنع اختفاء الواجهة
+    urlInput.onfocus = () => { 
+        isTyping = true; 
+        clearTimeout(hideTimer); 
+        ui.classList.remove('ui-hidden'); 
+    };
+    urlInput.onblur = () => { 
+        isTyping = false; 
+        // تأخير بسيط لإغلاق النتائج إذا لم يتم النقر عليها
+        setTimeout(() => { searchResults.style.display = 'none'; }, 200);
+        showUI(); 
+    };
+
     urlInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
         if (query.length === 0) { searchResults.style.display = 'none'; return; }
@@ -261,7 +315,6 @@
         
         if (matches.length > 0) {
             searchResults.innerHTML = matches.map(fullLink => {
-                // استخراج اسم الفيديو فقط (إزالة الجزء المشترك من الرابط)
                 let displayName = fullLink.replace(/https?:\/\/cdn\.cinema-blue\.icu\/blk\//gi, '').replace(/%20/g, ' ');
                 return `<div class="search-item" onclick="selectResult('${fullLink}')">${displayName}</div>`;
             }).join('');
@@ -270,20 +323,18 @@
     });
 
     function selectResult(fullLink) {
-        urlInput.value = fullLink; // نضع الرابط الكامل في الحقل المخفي/الخلفي للتشغيل
+        urlInput.value = fullLink;
         searchResults.style.display = 'none';
         updateSource();
     }
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-wrapper')) searchResults.style.display = 'none';
-    });
-
     function showUI() {
-        if (isLocked) return;
+        if (isLocked || isTyping) return;
         ui.classList.remove('ui-hidden');
         clearTimeout(hideTimer);
-        if (!video.paused) hideTimer = setTimeout(() => ui.classList.add('ui-hidden'), 3000);
+        if (!video.paused) hideTimer = setTimeout(() => {
+            if (!isTyping) ui.classList.add('ui-hidden');
+        }, 3000);
     }
 
     document.getElementById('playerContainer').addEventListener('mousemove', showUI);
@@ -292,10 +343,10 @@
     function togglePlay() {
         if (video.paused) {
             video.play();
-            document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+            document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-pause"></i>';
         } else {
             video.pause();
-            document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i>';
+            document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-play"></i>';
         }
         showUI();
     }
@@ -346,7 +397,7 @@
             video.src = url;
             video.load();
             video.play().then(() => {
-                document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+                document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-pause"></i>';
             });
             showUI();
         }
@@ -364,7 +415,6 @@
         if (!document.fullscreenElement) {
             if (container.requestFullscreen) {
                 container.requestFullscreen().then(() => {
-                    // محاولة إجبار التدوير بالعرض على الهواتف
                     if (screen.orientation && screen.orientation.lock) {
                         screen.orientation.lock('landscape').catch(() => {});
                     }
@@ -376,13 +426,6 @@
             document.exitFullscreen();
         }
     }
-
-    // الاستماع لتغير وضع الشاشة لضمان التنسيق
-    document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement && screen.orientation && screen.orientation.unlock) {
-            screen.orientation.unlock();
-        }
-    });
 
     function skip(val) {
         video.currentTime += val;
