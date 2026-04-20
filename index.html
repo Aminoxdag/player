@@ -194,7 +194,6 @@
 
 <div id="playerContainer">
     <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline>
-        <!-- سيتم تحميل المصدر عبر الجافا سكريبت -->
     </video>
 
     <div id="ui" class="ui-overlay">
@@ -202,14 +201,13 @@
         <div class="p-4 pt-6 flex flex-col items-center gap-4">
             <div class="search-wrapper">
                 <div class="url-box">
-                    <!-- زر المكتبة المدمج -->
                     <button onclick="window.open('https://aminoxdag.github.io/BLACKED-POMF/', '_blank')" class="library-btn" title="المكتبة">
                         <i class="fas fa-th-large"></i>
                     </button>
                     
                     <input type="text" id="videoUrl" 
                            class="url-input"
-                           placeholder="ابحث عن فيديو..." 
+                           placeholder="ابحث أو الصق رابط فيديو مباشر..." 
                            autocomplete="off">
                     
                     <button id="mainActionBtn" onclick="updateSource()" class="play-action-btn">تشغيل</button>
@@ -294,19 +292,14 @@
     }
     fetchLinks();
 
-    // كود التشغيل التلقائي من الـ Hash (الذي طلبته)
     window.onload = function() {
         const videoUrlFromHash = decodeURIComponent(window.location.hash.substring(1));
         if (videoUrlFromHash && videoUrlFromHash.startsWith('http')) {
-            const inputField = document.getElementById('videoUrl');
-            if (inputField) {
-                inputField.value = videoUrlFromHash;
-                updateSource(); // تشغيل الفيديو فوراً
-            }
+            urlInput.value = videoUrlFromHash;
+            updateSource();
         }
     }
 
-    // إدارة حالة الكتابة لمنع اختفاء الواجهة
     urlInput.onfocus = () => { 
         isTyping = true; 
         clearTimeout(hideTimer); 
@@ -319,11 +312,16 @@
     };
 
     urlInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
+        const query = e.target.value.toLowerCase().trim();
         if (query.length === 0) { searchResults.style.display = 'none'; return; }
 
+        // إذا كان المدخل رابطاً مباشراً، لا تظهر نتائج البحث المقترحة
+        if (query.startsWith('http')) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
         const matches = videoLinks.filter(l => l.toLowerCase().includes(query)).slice(0, 15);
-        
         if (matches.length > 0) {
             searchResults.innerHTML = matches.map(fullLink => {
                 let displayName = fullLink.replace(/https?:\/\/cdn\.cinema-blue\.icu\/blk\//gi, '').replace(/%20/g, ' ');
@@ -331,6 +329,14 @@
             }).join('');
             searchResults.style.display = 'block';
         } else { searchResults.style.display = 'none'; }
+    });
+
+    // إضافة دعم للضغط على Enter للتشغيل السريع
+    urlInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            updateSource();
+            urlInput.blur();
+        }
     });
 
     function selectResult(fullLink) {
