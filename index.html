@@ -26,6 +26,7 @@
             height: 100% !important;
             transition: object-fit 0.2s ease;
             display: block;
+            filter: none;
         }
 
         .fit-contain { object-fit: contain !important; } 
@@ -39,7 +40,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            background: linear-gradient(rgba(0,0,0,0.85) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.92) 100%);
+            background: linear-gradient(rgba(0,0,0,0.85) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.92) 100%);
             transition: opacity 0.4s ease, visibility 0.4s;
         }
 
@@ -64,7 +65,7 @@
             box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
 
-        .library-btn, .upload-btn {
+        .library-btn, .upload-btn, .filter-toggle-btn {
             width: 38px;
             height: 38px;
             display: flex;
@@ -79,7 +80,7 @@
             transition: 0.2s;
             cursor: pointer;
         }
-        .library-btn:active, .upload-btn:active { transform: scale(0.9); background: var(--vlc-orange); color: black; }
+        .library-btn:active, .upload-btn:active, .filter-toggle-btn:active { transform: scale(0.9); background: var(--vlc-orange); color: black; }
 
         .url-input {
             background: transparent;
@@ -111,7 +112,7 @@
             background: rgba(10, 10, 10, 0.98);
             backdrop-filter: blur(25px);
             border-radius: 20px;
-            max-height: 280px;
+            max-height: 250px;
             overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
             display: none;
@@ -141,7 +142,7 @@
 
         .seek-bar {
             width: 100%;
-            height: 5px;
+            height: 6px;
             background: rgba(255,255,255,0.15);
             border-radius: 10px;
             position: relative;
@@ -185,12 +186,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 10px;
+            font-size: 11px;
             color: rgba(255,255,255,0.7);
             cursor: pointer;
             transition: color 0.2s, transform 0.1s;
         }
-        .btn-skip i, .btn-frame i, .btn-capture i { font-size: 20px; margin-bottom: 3px; }
+        .btn-skip i, .btn-frame i, .btn-capture i { font-size: 22px; margin-bottom: 4px; }
         .btn-skip:active, .btn-frame:active, .btn-capture:active { transform: scale(0.9); color: var(--vlc-orange); }
         
         .notification {
@@ -198,16 +199,117 @@
             top: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             border: 1px solid var(--vlc-orange);
             color: white;
-            padding: 10px 20px;
+            padding: 10px 24px;
             border-radius: 30px;
             font-size: 13px;
             z-index: 2000;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* NEW DESIGN: Responsive Sliding Side Drawer for Filters
+          Slides in smoothly from the right, preventing any control overlap.
+        */
+        .filters-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            max-width: 380px;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(25px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            z-index: 1002; /* Sits over the UI overlays for absolute control */
+            box-shadow: -10px 0 40px rgba(0,0,0,0.85);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+            transform: translateX(100%);
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .filters-panel.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .filter-slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .filter-slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Highly Touch-friendly custom slider handle */
+        .filter-input-range {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.15);
+            outline: none;
+            margin: 6px 0;
+        }
+        
+        .filter-input-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--vlc-orange);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0,0,0,0.8);
+            border: 2px solid white;
+            transition: transform 0.1s;
+        }
+        
+        .filter-input-range::-webkit-slider-thumb:active {
+            transform: scale(1.3);
+        }
+
+        .preset-chip {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        
+        .preset-chip.active {
+            background: var(--vlc-orange);
+            color: black;
+            font-weight: 600;
+            border-color: var(--vlc-orange);
+            box-shadow: 0 4px 15px rgba(255, 149, 0, 0.3);
+        }
+
+        /* UI Lock state overlay click bypass */
+        .locked-shield {
+            position: absolute;
+            inset: 0;
+            z-index: 999;
+            background: transparent;
         }
     </style>
 </head>
@@ -215,9 +317,11 @@
 
 <div id="playerContainer">
     <!-- Main Video Player Element -->
-    <!-- crossOrigin set to anonymous to allow snapshot/canvas operations on remote URLs when supported -->
-    <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline crossorigin="anonymous">
+    <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline crossorigin="anonymous" preload="auto">
     </video>
+
+    <!-- Invisible protection shield when UI is locked -->
+    <div id="lockShield" class="locked-shield hidden" onclick="flashLockHint()"></div>
 
     <!-- UI Overlay Layer -->
     <div id="ui" class="ui-overlay">
@@ -231,12 +335,17 @@
                     </button>
                     
                     <!-- Upload From Album Button -->
-                    <label class="upload-btn" title="رفع فيديو من جهازك">
+                    <label class="upload-btn" title="رفع فيديو من جهازك (الألبوم)">
                         <input type="file" id="localVideoFile" accept="video/*" class="hidden" onchange="loadLocalVideo(this)">
                         <i class="fas fa-file-import"></i>
                     </label>
+
+                    <!-- Filter Drawer Toggle -->
+                    <button onclick="toggleFiltersPanel()" class="filter-toggle-btn" title="تعديل الفلاتر والألوان">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
                     
-                    <!-- Search Input -->
+                    <!-- Search/URL Input -->
                     <input type="text" id="videoUrl" 
                            class="url-input"
                            placeholder="ابحث، الصق رابطاً مباشرًا، أو ارفع ملفاً..." 
@@ -290,7 +399,7 @@
                     <button onclick="skip(10)" class="btn-skip"><i class="fas fa-forward"></i><span>10+ ثوانٍ</span></button>
                 </div>
 
-                <!-- Frame-by-Frame Controls & Frame Capturing (NEW) -->
+                <!-- Frame-by-Frame Controls & Frame Capturing -->
                 <div class="flex items-center justify-center gap-6 border-y md:border-y-0 border-white/10 py-3 md:py-0">
                     <!-- Previous Frame -->
                     <button onclick="stepFrame(-1)" class="btn-frame" title="الإطار السابق">
@@ -298,10 +407,10 @@
                         <span>إطار خلف</span>
                     </button>
                     
-                    <!-- Save current frame as PNG -->
-                    <button onclick="captureCurrentFrame()" class="btn-capture bg-orange-500/10 border border-orange-500/30 text-orange-400 px-4 py-2 rounded-xl" title="حفظ اللقطة الحالية كـ PNG">
+                    <!-- Save current frame as PNG with applied filters -->
+                    <button onclick="captureCurrentFrame()" class="btn-capture bg-orange-500/10 border border-orange-500/30 text-orange-400 px-4 py-2 rounded-xl" title="حفظ اللقطة بالفلاتر كـ PNG">
                         <i class="fas fa-camera text-xl mb-1 text-orange-500"></i>
-                        <span class="font-bold text-[11px]">حفظ إطار PNG</span>
+                        <span class="font-bold text-[11px]">حفظ إطار بالفلاتر</span>
                     </button>
 
                     <!-- Next Frame -->
@@ -323,6 +432,11 @@
                         <option value="0.25">0.25x (بطيء جداً)</option>
                     </select>
 
+                    <!-- Toggle Filters Panel Button -->
+                    <button onclick="toggleFiltersPanel()" title="التحكم بالفلاتر" class="text-white/70 text-2xl hover:text-orange-500 transition">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+
                     <!-- Picture In Picture Toggle -->
                     <button id="pipBtn" onclick="togglePIP()" title="صورة داخل صورة" class="text-white/70 text-2xl hover:text-orange-500 transition">
                         <i class="fas fa-window-restore"></i>
@@ -334,6 +448,98 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 
+      NEW GLASSMORPHIC SIDE DRAWER 
+      Positioned absolutely on the right to guarantee comfortable access 
+      without overlapping video or top bars.
+    -->
+    <div id="filtersPanel" class="filters-panel">
+        <div>
+            <!-- Header and close control -->
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-white/10">
+                <span class="text-base font-bold text-orange-400 flex items-center gap-2">
+                    <i class="fas fa-sliders-h"></i>
+                    تعديل الألوان والفلاتر
+                </span>
+                <button onclick="toggleFiltersPanel()" class="text-white/50 hover:text-white transition text-lg px-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Preset Quick Selections (Horizontal Scrollable) -->
+            <div class="mb-6">
+                <span class="text-xs text-white/50 block mb-3">فلاتر جاهزة سريعة:</span>
+                <div class="flex gap-2 overflow-x-auto pb-3" style="-webkit-overflow-scrolling: touch;">
+                    <div id="preset-normal" class="preset-chip active" onclick="applyPreset('normal')">طبيعي</div>
+                    <div id="preset-cinematic" class="preset-chip" onclick="applyPreset('cinematic')">سينمائي دافئ</div>
+                    <div id="preset-noir" class="preset-chip" onclick="applyPreset('noir')">سينما نوار (B&W)</div>
+                    <div id="preset-cyberpunk" class="preset-chip" onclick="applyPreset('cyberpunk')">سايبربانك</div>
+                    <div id="preset-cool" class="preset-chip" onclick="applyPreset('cool')">بارد</div>
+                    <div id="preset-vintage" class="preset-chip" onclick="applyPreset('vintage')">فنتج</div>
+                </div>
+            </div>
+
+            <!-- Touch Friendly Precision Manual Controllers -->
+            <div class="flex flex-col gap-1 overflow-y-auto pr-1" style="max-height: calc(100vh - 280px);">
+                <!-- Brightness -->
+                <div class="filter-slider-container">
+                    <div class="filter-slider-label">
+                        <span>السطوع (Brightness)</span>
+                        <span id="val-brightness" class="font-mono text-orange-400 font-bold">100%</span>
+                    </div>
+                    <input type="range" id="adjust-brightness" class="filter-input-range" min="50" max="200" value="100" oninput="updateManualFilter('brightness', this.value)">
+                </div>
+                <!-- Contrast -->
+                <div class="filter-slider-container">
+                    <div class="filter-slider-label">
+                        <span>التباين (Contrast)</span>
+                        <span id="val-contrast" class="font-mono text-orange-400 font-bold">100%</span>
+                    </div>
+                    <input type="range" id="adjust-contrast" class="filter-input-range" min="50" max="200" value="100" oninput="updateManualFilter('contrast', this.value)">
+                </div>
+                <!-- Saturation -->
+                <div class="filter-slider-container">
+                    <div class="filter-slider-label">
+                        <span>تشبع الألوان (Saturation)</span>
+                        <span id="val-saturate" class="font-mono text-orange-400 font-bold">100%</span>
+                    </div>
+                    <input type="range" id="adjust-saturate" class="filter-input-range" min="0" max="200" value="100" oninput="updateManualFilter('saturate', this.value)">
+                </div>
+                <!-- Hue-rotate -->
+                <div class="filter-slider-container">
+                    <div class="filter-slider-label">
+                        <span>درجة اللون (Hue Rotate)</span>
+                        <span id="val-hue" class="font-mono text-orange-400 font-bold">0°</span>
+                    </div>
+                    <input type="range" id="adjust-hue" class="filter-input-range" min="0" max="360" value="0" oninput="updateManualFilter('hue', this.value)">
+                </div>
+                <!-- Blur -->
+                <div class="filter-slider-container">
+                    <div class="filter-slider-label">
+                        <span>التغبيش وضبابية (Blur)</span>
+                        <span id="val-blur" class="font-mono text-orange-400 font-bold">0px</span>
+                    </div>
+                    <input type="range" id="adjust-blur" class="filter-input-range" min="0" max="10" value="0" step="0.5" oninput="updateManualFilter('blur', this.value)">
+                </div>
+                <!-- Sepia -->
+                <div class="filter-slider-container">
+                    <div class="filter-slider-label">
+                        <span>تأثير عتيق كلاسيكي (Sepia)</span>
+                        <span id="val-sepia" class="font-mono text-orange-400 font-bold">0%</span>
+                    </div>
+                    <input type="range" id="adjust-sepia" class="filter-input-range" min="0" max="100" value="0" oninput="updateManualFilter('sepia', this.value)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Button inside drawer footer -->
+        <div class="pt-4 border-t border-white/10 mt-4">
+            <button onclick="resetFilters()" class="w-full py-3 bg-white/5 hover:bg-white/10 active:scale-95 text-white text-sm font-semibold rounded-xl transition duration-200">
+                إعادة ضبط كافة الفلاتر والألوان
+            </button>
         </div>
     </div>
 </div>
@@ -348,17 +554,38 @@
     const searchResults = document.getElementById('searchResults');
     const pipBtn = document.getElementById('pipBtn');
     const toastNotification = document.getElementById('toastNotification');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const lockShield = document.getElementById('lockShield');
     
     let hideTimer;
     let aspectIndex = 0; 
     let isLocked = false;
     let videoLinks = [];
     let isTyping = false; 
+    let currentObjectURL = null;
 
-    // FPS configuration used for precise Frame by Frame navigation
-    const DEFAULT_FPS = 25; // Standard fallback FPS
+    const DEFAULT_FPS = 25;
 
-    // Fetch library link items
+    // Filter properties state
+    let manualFilters = {
+        brightness: 100,
+        contrast: 100,
+        saturate: 100,
+        hue: 0,
+        blur: 0,
+        sepia: 0
+    };
+
+    const filterPresets = {
+        normal: { brightness: 100, contrast: 100, saturate: 100, hue: 0, blur: 0, sepia: 0 },
+        cinematic: { brightness: 105, contrast: 120, saturate: 125, hue: 0, blur: 0, sepia: 15 },
+        noir: { brightness: 100, contrast: 150, saturate: 0, hue: 0, blur: 0, sepia: 5 },
+        cyberpunk: { brightness: 110, contrast: 125, saturate: 175, hue: 320, blur: 0, sepia: 0 },
+        cool: { brightness: 95, contrast: 105, saturate: 85, hue: 190, blur: 0, sepia: 0 },
+        vintage: { brightness: 90, contrast: 95, saturate: 75, hue: 15, blur: 0, sepia: 45 }
+    };
+
+    // Fetch live video list
     async function fetchLinks() {
         try {
             const response = await fetch('https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/cytube_links.txt');
@@ -419,83 +646,170 @@
         updateSource();
     }
 
-    // Load Local files from Gallery / Album (NEW Feature)
+    // High performance video loader utilizing dynamic resource recycling to fix freezes after 1 min
     function loadLocalVideo(input) {
         if (input.files && input.files[0]) {
             const file = input.files[0];
-            const fileURL = URL.createObjectURL(file);
             
-            // Update input label representation and play
-            urlInput.value = `ملف محلي: ${file.name}`;
-            video.src = fileURL;
+            // Critical fix for 1 minute local video freeze:
+            // Release/revoke memory of previous object URL to avoid browser buffer overflow
+            if (currentObjectURL) {
+                URL.revokeObjectURL(currentObjectURL);
+            }
+            
+            currentObjectURL = URL.createObjectURL(file);
+            
+            // Clean state load
+            video.src = currentObjectURL;
+            video.preload = "auto";
             video.load();
+            
+            urlInput.value = `ملف محلي: ${file.name}`;
+            
             video.play().then(() => {
                 document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-pause"></i>';
-                showNotification("تم تحميل وتشغيل الفيديو بنجاح");
+                showNotification("تم تحميل ملف الألبوم وتشغيله بنجاح");
             }).catch(e => {
-                console.log("Local playback error: ", e);
+                console.log("Auto-play was paused by browser sandbox");
             });
             showUI();
         }
     }
 
-    // Precise Frame-by-Frame stepping (NEW Feature)
+    // Anti-Freeze & Stream Stall Auto-Recovery System
+    video.addEventListener('stalled', () => {
+        recoverHangingPlayback();
+    });
+
+    video.addEventListener('waiting', () => {
+        // Trigger recovery if waiting state stays frozen for more than 800ms
+        setTimeout(() => {
+            if (video.readyState < 3 && !video.paused) {
+                recoverHangingPlayback();
+            }
+        }, 800);
+    });
+
+    function recoverHangingPlayback() {
+        if (!video.duration || video.paused) return;
+        console.log("Anti-Freeze Activated: Softly nudging playback buffer forward.");
+        // Nudge position forward by 0.15s to bypass stalling segments smoothly
+        video.currentTime = Math.min(video.duration, video.currentTime + 0.15);
+        video.play().catch(e => console.log("Nudge recovery bypassed"));
+    }
+
+    // Precise Frame Nav
     function stepFrame(framesCount) {
         if (!video.duration) return;
         
-        // Pause the video if playing to allow precise inspection
         if (!video.paused) {
             video.pause();
             document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-play"></i>';
         }
 
-        // Calculate single frame duration (defaulting to ~40ms if FPS unknown)
         const frameTime = 1 / DEFAULT_FPS;
         video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + (framesCount * frameTime)));
         showUI();
     }
 
-    // Capture Exact Frame and Save to Gallery as PNG (NEW Feature)
+    // Drawer Open/Close Handler
+    function toggleFiltersPanel() {
+        filtersPanel.classList.toggle('active');
+        showUI();
+    }
+
+    // Manual slider updater
+    function updateManualFilter(property, value) {
+        manualFilters[property] = parseFloat(value);
+        
+        const suffix = (property === 'hue') ? '°' : (property === 'blur') ? 'px' : '%';
+        document.getElementById(`val-${property}`).innerText = value + suffix;
+
+        // Reset highlight active classes for presets
+        document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+
+        applyRenderedFilters();
+    }
+
+    // Preset Selection Applier
+    function applyPreset(presetKey) {
+        const preset = filterPresets[presetKey];
+        if (!preset) return;
+
+        manualFilters = { ...preset };
+
+        // Synchronize manual sliders positions on UI
+        for (const [prop, val] of Object.entries(preset)) {
+            const slider = document.getElementById(`adjust-${prop}`);
+            if (slider) {
+                slider.value = val;
+                const suffix = (prop === 'hue') ? '°' : (prop === 'blur') ? 'px' : '%';
+                document.getElementById(`val-${prop}`).innerText = val + suffix;
+            }
+        }
+
+        document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+        document.getElementById(`preset-${presetKey}`).classList.add('active');
+
+        applyRenderedFilters();
+    }
+
+    function applyRenderedFilters() {
+        video.style.filter = getFilterCSSString();
+    }
+
+    function getFilterCSSString() {
+        return `brightness(${manualFilters.brightness}%) ` +
+               `contrast(${manualFilters.contrast}%) ` +
+               `saturate(${manualFilters.saturate}%) ` +
+               `hue-rotate(${manualFilters.hue}deg) ` +
+               `blur(${manualFilters.blur}px) ` +
+               `sepia(${manualFilters.sepia}%)`;
+    }
+
+    function resetFilters() {
+        applyPreset('normal');
+        showNotification("تمت إعادة ضبط فلاتر الألوان كلياً");
+    }
+
+    // Captures currently playing canvas with all visual properties preserved
     function captureCurrentFrame() {
         if (!video.duration || video.readyState < 2) {
-            showNotification("خطأ: يرجى تشغيل مقطع فيديو أولاً لالتقاط اللقطة!");
+            showNotification("يرجى تشغيل الفيديو لالتقاط صورة!");
             return;
         }
 
         try {
-            // Create a virtual Canvas holding the video's actual resolution
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
             const ctx = canvas.getContext('2d');
-            // Draw current frame onto the canvas
+            
+            // Apply live customized filters to the exported canvas rendering context
+            ctx.filter = getFilterCSSString();
+            
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Export canvas as highly compatible PNG
-            // If the video source is local or has CORS allowance, this succeeds. 
-            // In case of remote CORS limitations, it prompts a clean notification.
             const dataUrl = canvas.toDataURL('image/png');
             
-            // Create temporal anchor element to download locally
             const downloadLink = document.createElement('a');
-            const videoName = urlInput.value.split('/').pop().replace(/[^a-zA-Z0-9]/g, '_') || "vlc_frame";
+            const videoName = urlInput.value.split('/').pop().replace(/[^a-zA-Z0-9]/g, '_') || "vlc_capture";
             const timestamp = Math.floor(video.currentTime * 100) / 100;
             
-            downloadLink.download = `VLC_Capture_${videoName}_${timestamp}s.png`;
+            downloadLink.download = `VLC_Filters_${videoName}_${timestamp}s.png`;
             downloadLink.href = dataUrl;
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
             
-            showNotification("تم حفظ لقطة الإطار الحالي كـ PNG!");
+            showNotification("تم التقاط الإطار بالفلاتر وحفظه بنجاح!");
         } catch (error) {
             console.error(error);
             showNotification("تنبيه: لا يمكن حفظ الصور من روابط خارجية تمنع مشاركة الموارد (CORS). يرجى تجربة ملف محلي!");
         }
     }
 
-    // Custom Toast Notification system
     function showNotification(msg) {
         toastNotification.innerText = msg;
         toastNotification.style.opacity = '1';
@@ -508,9 +822,12 @@
         if (isLocked || isTyping) return;
         ui.classList.remove('ui-hidden');
         clearTimeout(hideTimer);
-        if (!video.paused) hideTimer = setTimeout(() => {
-            if (!isTyping) ui.classList.add('ui-hidden');
-        }, 3000);
+        // Do not auto-hide UI controls when the filter adjust panel is actively open
+        if (!video.paused && !filtersPanel.classList.contains('active')) {
+            hideTimer = setTimeout(() => {
+                if (!isTyping) ui.classList.add('ui-hidden');
+            }, 3000);
+        }
     }
 
     document.getElementById('playerContainer').addEventListener('mousemove', showUI);
@@ -527,7 +844,14 @@
         showUI();
     }
 
-    video.addEventListener('click', togglePlay);
+    video.addEventListener('click', () => {
+        // Only click to toggle play if the filters side-panel drawer is closed
+        if (filtersPanel.classList.contains('active')) {
+            filtersPanel.classList.remove('active');
+        } else {
+            togglePlay();
+        }
+    });
 
     video.ontimeupdate = () => {
         const percent = (video.currentTime / video.duration) * 100;
@@ -611,8 +935,18 @@
     function toggleLock() {
         isLocked = !isLocked;
         document.getElementById('lockIcon').className = isLocked ? "fas fa-lock text-orange-500" : "fas fa-unlock";
-        if (isLocked) ui.classList.add('ui-hidden');
-        else showUI();
+        if (isLocked) {
+            ui.classList.add('ui-hidden');
+            lockShield.classList.remove('hidden');
+            filtersPanel.classList.remove('active'); // Close side panel when locked
+        } else {
+            lockShield.classList.add('hidden');
+            showUI();
+        }
+    }
+
+    function flashLockHint() {
+        showNotification("الشاشة مؤمنة! قم بإلغاء القفل أولاً للتحكم.");
     }
 
     video.onloadedmetadata = () => {
@@ -626,10 +960,10 @@
         if (e.code === 'KeyP') togglePIP();
         if (e.code === 'ArrowRight') skip(10);
         if (e.code === 'ArrowLeft') skip(-10);
-        // Added Keyboard shortcuts for frame progression
-        if (e.code === 'BracketLeft') stepFrame(-1);  // "[" for previous frame
-        if (e.code === 'BracketRight') stepFrame(1);  // "]" for next frame
-        if (e.code === 'KeyS') captureCurrentFrame(); // "S" for screenshot save
+        if (e.code === 'BracketLeft') stepFrame(-1); 
+        if (e.code === 'BracketRight') stepFrame(1); 
+        if (e.code === 'KeyS') captureCurrentFrame();
+        if (e.code === 'KeyG') toggleFiltersPanel();
     };
 </script>
 </body>
