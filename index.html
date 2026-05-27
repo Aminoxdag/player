@@ -39,7 +39,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            background: linear-gradient(rgba(0,0,0,0.8) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.9) 100%);
+            background: linear-gradient(rgba(0,0,0,0.85) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.92) 100%);
             transition: opacity 0.4s ease, visibility 0.4s;
         }
 
@@ -64,7 +64,7 @@
             box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
 
-        .library-btn {
+        .library-btn, .upload-btn {
             width: 38px;
             height: 38px;
             display: flex;
@@ -74,11 +74,12 @@
             color: var(--vlc-orange);
             border-radius: 50%;
             border: 1px solid rgba(255, 149, 0, 0.3);
-            margin-left: 10px;
+            margin-left: 8px;
             flex-shrink: 0;
             transition: 0.2s;
+            cursor: pointer;
         }
-        .library-btn:active { transform: scale(0.9); background: var(--vlc-orange); color: black; }
+        .library-btn:active, .upload-btn:active { transform: scale(0.9); background: var(--vlc-orange); color: black; }
 
         .url-input {
             background: transparent;
@@ -180,41 +181,74 @@
             cursor: pointer;
         }
 
-        .btn-skip {
+        .btn-skip, .btn-frame, .btn-capture {
             display: flex;
             flex-direction: column;
             align-items: center;
             font-size: 10px;
             color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: color 0.2s, transform 0.1s;
         }
-        .btn-skip i { font-size: 24px; margin-bottom: 3px; }
+        .btn-skip i, .btn-frame i, .btn-capture i { font-size: 20px; margin-bottom: 3px; }
+        .btn-skip:active, .btn-frame:active, .btn-capture:active { transform: scale(0.9); color: var(--vlc-orange); }
+        
+        .notification {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid var(--vlc-orange);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            z-index: 2000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
     </style>
 </head>
 <body>
 
 <div id="playerContainer">
-    <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline>
+    <!-- Main Video Player Element -->
+    <!-- crossOrigin set to anonymous to allow snapshot/canvas operations on remote URLs when supported -->
+    <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline crossorigin="anonymous">
     </video>
 
+    <!-- UI Overlay Layer -->
     <div id="ui" class="ui-overlay">
-        <!-- البحث المدمج في الأعلى -->
+        <!-- Top Search & Actions Bar -->
         <div class="p-4 pt-6 flex flex-col items-center gap-4">
             <div class="search-wrapper">
                 <div class="url-box">
+                    <!-- Library Button -->
                     <button onclick="window.open('https://aminoxdag.github.io/BLACKED-POMF/', '_blank')" class="library-btn" title="المكتبة">
                         <i class="fas fa-th-large"></i>
                     </button>
                     
+                    <!-- Upload From Album Button -->
+                    <label class="upload-btn" title="رفع فيديو من جهازك">
+                        <input type="file" id="localVideoFile" accept="video/*" class="hidden" onchange="loadLocalVideo(this)">
+                        <i class="fas fa-file-import"></i>
+                    </label>
+                    
+                    <!-- Search Input -->
                     <input type="text" id="videoUrl" 
                            class="url-input"
-                           placeholder="ابحث أو الصق رابط فيديو مباشر..." 
+                           placeholder="ابحث، الصق رابطاً مباشرًا، أو ارفع ملفاً..." 
                            autocomplete="off">
                     
+                    <!-- Play Button -->
                     <button id="mainActionBtn" onclick="updateSource()" class="play-action-btn">تشغيل</button>
                 </div>
                 <div id="searchResults" class="search-results"></div>
             </div>
             
+            <!-- Context options -->
             <div class="w-full flex justify-between items-center px-4">
                 <div class="text-[10px] font-bold tracking-[2px] opacity-30 uppercase">Professional Cinema</div>
                 <div class="flex gap-4 items-center">
@@ -224,39 +258,77 @@
             </div>
         </div>
 
-        <!-- التحكم السفلي -->
+        <!-- Notification Message Pop-up -->
+        <div id="toastNotification" class="notification">تم الحفظ بنجاح!</div>
+
+        <!-- Bottom Controls Bar -->
         <div class="p-6">
+            <!-- Timeline details -->
             <div class="flex justify-between text-[12px] font-mono mb-2 px-1 opacity-70" dir="ltr">
                 <span id="currentTime">00:00</span>
                 <span id="durationTime">00:00</span>
             </div>
 
+            <!-- Seek Slider container -->
             <div class="seek-container" id="seekWrapper">
                 <div class="seek-bar">
                     <div id="progFill"></div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mt-5">
-                <div class="flex items-center gap-10">
+            <!-- Functional Playback Keys -->
+            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between mt-5 gap-4">
+                
+                <!-- Left Playback & Navigation Block -->
+                <div class="flex items-center justify-between md:justify-start gap-6 md:gap-10">
+                    <!-- Main Play Action -->
                     <button onclick="togglePlay()" id="playBtnSmall" class="text-4xl text-white hover:text-orange-400 transition transform active:scale-90">
                         <i class="fas fa-play"></i>
                     </button>
-                    <button onclick="skip(-10)" class="btn-skip"><i class="fas fa-backward"></i><span>10-</span></button>
-                    <button onclick="skip(10)" class="btn-skip"><i class="fas fa-forward"></i><span>10+</span></button>
+                    <!-- Quick Seek Buttons -->
+                    <button onclick="skip(-10)" class="btn-skip"><i class="fas fa-backward"></i><span>10- ثوانٍ</span></button>
+                    <button onclick="skip(10)" class="btn-skip"><i class="fas fa-forward"></i><span>10+ ثوانٍ</span></button>
                 </div>
 
-                <div class="flex items-center gap-7">
-                    <select onchange="video.playbackRate = this.value" class="bg-white/10 text-[11px] border border-white/10 rounded-full px-4 py-1.5 outline-none cursor-pointer">
+                <!-- Frame-by-Frame Controls & Frame Capturing (NEW) -->
+                <div class="flex items-center justify-center gap-6 border-y md:border-y-0 border-white/10 py-3 md:py-0">
+                    <!-- Previous Frame -->
+                    <button onclick="stepFrame(-1)" class="btn-frame" title="الإطار السابق">
+                        <i class="fas fa-chevron-left"></i>
+                        <span>إطار خلف</span>
+                    </button>
+                    
+                    <!-- Save current frame as PNG -->
+                    <button onclick="captureCurrentFrame()" class="btn-capture bg-orange-500/10 border border-orange-500/30 text-orange-400 px-4 py-2 rounded-xl" title="حفظ اللقطة الحالية كـ PNG">
+                        <i class="fas fa-camera text-xl mb-1 text-orange-500"></i>
+                        <span class="font-bold text-[11px]">حفظ إطار PNG</span>
+                    </button>
+
+                    <!-- Next Frame -->
+                    <button onclick="stepFrame(1)" class="btn-frame" title="الإطار التالي">
+                        <i class="fas fa-chevron-right"></i>
+                        <span>إطار أمام</span>
+                    </button>
+                </div>
+
+                <!-- Right Aspect/Speed/PIP/Fullscreen Configuration block -->
+                <div class="flex items-center justify-between md:justify-end gap-6 md:gap-7">
+                    <!-- Playback Speed -->
+                    <select onchange="video.playbackRate = parseFloat(this.value)" class="bg-white/10 text-[11px] border border-white/10 rounded-full px-4 py-1.5 outline-none cursor-pointer">
                         <option value="1">1.0x</option>
+                        <option value="1.25">1.25x</option>
                         <option value="1.5">1.5x</option>
                         <option value="2">2.0x</option>
+                        <option value="0.5">0.5x (بطيء)</option>
+                        <option value="0.25">0.25x (بطيء جداً)</option>
                     </select>
 
+                    <!-- Picture In Picture Toggle -->
                     <button id="pipBtn" onclick="togglePIP()" title="صورة داخل صورة" class="text-white/70 text-2xl hover:text-orange-500 transition">
                         <i class="fas fa-window-restore"></i>
                     </button>
 
+                    <!-- Fullscreen Screen Switch -->
                     <button onclick="requestFullScreen()" class="text-orange-500 text-3xl hover:scale-110 transition active:scale-95">
                         <i class="fas fa-expand"></i>
                     </button>
@@ -275,6 +347,7 @@
     const urlInput = document.getElementById('videoUrl');
     const searchResults = document.getElementById('searchResults');
     const pipBtn = document.getElementById('pipBtn');
+    const toastNotification = document.getElementById('toastNotification');
     
     let hideTimer;
     let aspectIndex = 0; 
@@ -282,7 +355,10 @@
     let videoLinks = [];
     let isTyping = false; 
 
-    // جلب الروابط
+    // FPS configuration used for precise Frame by Frame navigation
+    const DEFAULT_FPS = 25; // Standard fallback FPS
+
+    // Fetch library link items
     async function fetchLinks() {
         try {
             const response = await fetch('https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/cytube_links.txt');
@@ -315,7 +391,6 @@
         const query = e.target.value.toLowerCase().trim();
         if (query.length === 0) { searchResults.style.display = 'none'; return; }
 
-        // إذا كان المدخل رابطاً مباشراً، لا تظهر نتائج البحث المقترحة
         if (query.startsWith('http')) {
             searchResults.style.display = 'none';
             return;
@@ -331,7 +406,6 @@
         } else { searchResults.style.display = 'none'; }
     });
 
-    // إضافة دعم للضغط على Enter للتشغيل السريع
     urlInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             updateSource();
@@ -343,6 +417,91 @@
         urlInput.value = fullLink;
         searchResults.style.display = 'none';
         updateSource();
+    }
+
+    // Load Local files from Gallery / Album (NEW Feature)
+    function loadLocalVideo(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const fileURL = URL.createObjectURL(file);
+            
+            // Update input label representation and play
+            urlInput.value = `ملف محلي: ${file.name}`;
+            video.src = fileURL;
+            video.load();
+            video.play().then(() => {
+                document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-pause"></i>';
+                showNotification("تم تحميل وتشغيل الفيديو بنجاح");
+            }).catch(e => {
+                console.log("Local playback error: ", e);
+            });
+            showUI();
+        }
+    }
+
+    // Precise Frame-by-Frame stepping (NEW Feature)
+    function stepFrame(framesCount) {
+        if (!video.duration) return;
+        
+        // Pause the video if playing to allow precise inspection
+        if (!video.paused) {
+            video.pause();
+            document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-play"></i>';
+        }
+
+        // Calculate single frame duration (defaulting to ~40ms if FPS unknown)
+        const frameTime = 1 / DEFAULT_FPS;
+        video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + (framesCount * frameTime)));
+        showUI();
+    }
+
+    // Capture Exact Frame and Save to Gallery as PNG (NEW Feature)
+    function captureCurrentFrame() {
+        if (!video.duration || video.readyState < 2) {
+            showNotification("خطأ: يرجى تشغيل مقطع فيديو أولاً لالتقاط اللقطة!");
+            return;
+        }
+
+        try {
+            // Create a virtual Canvas holding the video's actual resolution
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            const ctx = canvas.getContext('2d');
+            // Draw current frame onto the canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Export canvas as highly compatible PNG
+            // If the video source is local or has CORS allowance, this succeeds. 
+            // In case of remote CORS limitations, it prompts a clean notification.
+            const dataUrl = canvas.toDataURL('image/png');
+            
+            // Create temporal anchor element to download locally
+            const downloadLink = document.createElement('a');
+            const videoName = urlInput.value.split('/').pop().replace(/[^a-zA-Z0-9]/g, '_') || "vlc_frame";
+            const timestamp = Math.floor(video.currentTime * 100) / 100;
+            
+            downloadLink.download = `VLC_Capture_${videoName}_${timestamp}s.png`;
+            downloadLink.href = dataUrl;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            showNotification("تم حفظ لقطة الإطار الحالي كـ PNG!");
+        } catch (error) {
+            console.error(error);
+            showNotification("تنبيه: لا يمكن حفظ الصور من روابط خارجية تمنع مشاركة الموارد (CORS). يرجى تجربة ملف محلي!");
+        }
+    }
+
+    // Custom Toast Notification system
+    function showNotification(msg) {
+        toastNotification.innerText = msg;
+        toastNotification.style.opacity = '1';
+        setTimeout(() => {
+            toastNotification.style.opacity = '0';
+        }, 3500);
     }
 
     function showUI() {
@@ -410,7 +569,7 @@
 
     function updateSource() {
         const url = urlInput.value.trim();
-        if (url) {
+        if (url && !url.startsWith("ملف محلي:")) {
             video.src = url;
             video.load();
             video.play().then(() => {
@@ -467,6 +626,10 @@
         if (e.code === 'KeyP') togglePIP();
         if (e.code === 'ArrowRight') skip(10);
         if (e.code === 'ArrowLeft') skip(-10);
+        // Added Keyboard shortcuts for frame progression
+        if (e.code === 'BracketLeft') stepFrame(-1);  // "[" for previous frame
+        if (e.code === 'BracketRight') stepFrame(1);  // "]" for next frame
+        if (e.code === 'KeyS') captureCurrentFrame(); // "S" for screenshot save
     };
 </script>
 </body>
