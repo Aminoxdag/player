@@ -6,6 +6,7 @@
     <title>VLC Ultimate Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root { --vlc-orange: #ff9500; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; color: white; font-family: system-ui, -apple-system, sans-serif; }
@@ -311,145 +312,140 @@
             z-index: 999;
             background: transparent;
         }
+
+        body, button, input, select { font-family: 'Tajawal', system-ui, sans-serif; }
+        /* طبقة الإيماءات تحت الواجهة؛ الواجهة لا تحجب اللمس إلا على عناصرها */
+        #gestures { position:absolute; inset:0; z-index:90; touch-action:none; -webkit-tap-highlight-color:transparent; }
+        .ui-overlay { pointer-events:none; }
+        #ui button, #ui input, #ui label, #ui select, #ui .badge-aspect, #ui .seek-container, #ui .search-results { pointer-events:auto; }
+        #gHint { position:absolute; top:42%; left:50%; transform:translate(-50%,-50%); z-index:1500; background:rgba(0,0,0,.7); backdrop-filter:blur(10px); padding:10px 22px; border-radius:30px; font-size:16px; font-weight:700; pointer-events:none; opacity:0; transition:opacity .2s; direction:ltr; }
+        #spinner { position:absolute; top:50%; left:50%; width:46px; height:46px; margin:-23px; border:4px solid rgba(255,255,255,.2); border-top-color:var(--vlc-orange); border-radius:50%; z-index:95; pointer-events:none; display:none; animation:spin .8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .seek-container { height:44px; touch-action:none; }
+        .seek-bar { height:5px; transition:height .15s; }
+        .seek-container.drag .seek-bar { height:9px; }
+        .seek-container.drag #progFill::after { transform:translateY(-50%) scale(1.45); }
+        #bufFill { position:absolute; left:0; top:0; height:100%; width:0; background:rgba(255,255,255,.3); border-radius:10px; }
+        #pvBox { position:absolute; bottom:38px; left:0; width:176px; transform:translateX(-50%); opacity:0; pointer-events:none; transition:opacity .15s; text-align:center; z-index:5; }
+        #pvBox.show { opacity:1; }
+        #pvCanvas { width:176px; background:#111; border:2px solid var(--vlc-orange); border-radius:10px; display:block; box-shadow:0 8px 30px rgba(0,0,0,.7); }
+        #pvTime { display:inline-block; margin-top:4px; font:700 12px monospace; background:rgba(0,0,0,.75); padding:2px 8px; border-radius:8px; }
+        .unlock-btn { position:absolute; bottom:48px; left:50%; transform:translateX(-50%); z-index:1500; background:var(--vlc-orange); color:#000; font-weight:700; padding:12px 26px; border-radius:40px; box-shadow:0 8px 30px rgba(0,0,0,.6); }
+        .ctl-on { color:var(--vlc-orange) !important; }
+
+        /* ===== إعادة تصميم الواجهة (جوال أولاً + شاشات كبيرة) ===== */
+        html, body { height:100%; height:100dvh; }
+        #playerContainer { height:100vh; height:100dvh; }
+        .ui-overlay { box-sizing:border-box; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            background:linear-gradient(rgba(0,0,0,.8), transparent 22%, transparent 60%, rgba(0,0,0,.92)); }
+        .topbar { padding:10px 12px 0; display:flex; flex-direction:column; align-items:center; gap:8px; }
+        .search-wrapper { width:100%; max-width:680px; min-width:0; }
+        .url-box { gap:6px; padding:5px; min-width:0; }
+        .ibtn { width:40px; height:40px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:50%;
+            background:rgba(255,149,0,.18); color:var(--vlc-orange); border:1px solid rgba(255,149,0,.3); font-size:15px; cursor:pointer; margin:0; transition:.15s; }
+        .ibtn:active { transform:scale(.9); background:var(--vlc-orange); color:#000; }
+        .ibtn.glass { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.15); color:#fff; }
+        .url-input { min-width:0; flex:1; font-size:14px; padding:0 8px; text-overflow:ellipsis; }
+        .go-btn { width:40px; height:40px; flex:none; border-radius:50%; background:var(--vlc-orange); color:#000; font-size:14px; display:flex; align-items:center; justify-content:center; border:0; }
+        .go-btn:active { transform:scale(.9); }
+        .subrow { width:100%; max-width:680px; display:flex; justify-content:space-between; align-items:center; padding:0 2px; }
+        .badge-aspect { height:36px; display:flex; align-items:center; background:rgba(255,255,255,.1); backdrop-filter:blur(12px); }
+        .bottom { width:100%; max-width:980px; margin:0 auto; box-sizing:border-box; padding:0 16px 10px; display:flex; flex-direction:column; gap:0; }
+        .times { display:flex; justify-content:space-between; font-size:13px; font-weight:500; opacity:.85; font-variant-numeric:tabular-nums; padding:0 8px; }
+        .seek-bar { width:calc(100% - 16px); margin:0 8px; }
+        .ctrl-wrap { display:flex; flex-direction:column; gap:6px; }
+        .row { display:flex; align-items:center; justify-content:space-between; gap:4px; }
+        .row.main { justify-content:center; gap:clamp(12px,5vw,34px); }
+        .cbtn { position:relative; flex:none; width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:20px; background:transparent; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:.12s; }
+        .cbtn:active { background:rgba(255,255,255,.16); transform:scale(.9); }
+        .cbtn.sk { font-size:30px; }
+        .cbtn small { position:absolute; top:50%; left:50%; transform:translate(-50%,-44%); font:700 9px/1 'Tajawal',sans-serif; }
+        .cbtn.s { width:42px; height:42px; font-size:18px; color:rgba(255,255,255,.82); }
+        .cbtn.accent { color:var(--vlc-orange); background:rgba(255,149,0,.14); border:1px solid rgba(255,149,0,.35); }
+        .play-main { flex:none; width:68px; height:68px; border-radius:50%; background:var(--vlc-orange); color:#000; font-size:26px; border:0; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(255,149,0,.35); cursor:pointer; transition:.12s; }
+        .play-main:active { transform:scale(.92); }
+        .chip { height:36px; padding:0 10px; background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.14); border-radius:20px; font-size:12px; outline:none; flex:none; }
+        .chip option { background:#111; color:#fff; }
+        .vol { display:none; width:90px; flex:none; }
+        @media (min-width:768px) { .vol { display:block; } .row.sec { justify-content:center; gap:14px; } }
+        @media (orientation:landscape) and (max-height:520px) {
+            .topbar { flex-direction:row; align-items:center; padding-top:6px; }
+            .subrow { width:auto; gap:8px; }
+            .bottom { padding-bottom:4px; }
+            .ctrl-wrap { flex-direction:row; align-items:center; justify-content:space-between; }
+            .row.main { gap:10px; } .play-main { width:52px; height:52px; font-size:21px; }
+            .cbtn { width:40px; height:40px; } .cbtn.sk { font-size:26px; }
+            .row.sec { gap:2px; }
+        }
+        .notification { top:calc(env(safe-area-inset-top) + 120px); max-width:90%; text-align:center; }
+        #filtersPanel { width:min(100%,380px); box-sizing:border-box; padding-bottom:calc(24px + env(safe-area-inset-bottom)); }
+        #filtersPanel > div:first-child { flex:1; min-height:0; overflow-y:auto; }
+        #filtersPanel .overflow-y-auto { max-height:none !important; }
     </style>
 </head>
 <body>
 
 <div id="playerContainer">
     <!-- Main Video Player Element -->
-    <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline crossorigin="anonymous" preload="auto">
+    <video id="mainVideo" class="fit-contain" playsinline webkit-playsinline preload="auto">
     </video>
 
     <!-- Invisible protection shield when UI is locked -->
     <div id="lockShield" class="locked-shield hidden" onclick="flashLockHint()"></div>
 
+    <div id="gestures"></div>
+    <div id="spinner"></div>
+    <div id="gHint"></div>
     <!-- UI Overlay Layer -->
     <div id="ui" class="ui-overlay">
-        <!-- Top Search & Actions Bar -->
-        <div class="p-4 pt-6 flex flex-col items-center gap-4">
+        <div class="topbar">
             <div class="search-wrapper">
                 <div class="url-box">
-                    <!-- Library Button -->
-                    <button onclick="window.open('https://aminoxdag.github.io/BLACKED-POMF/', '_blank')" class="library-btn" title="المكتبة">
-                        <i class="fas fa-th-large"></i>
-                    </button>
-                    
-                    <!-- Upload From Album Button -->
-                    <label class="upload-btn" title="رفع فيديو من جهازك (الألبوم)">
-                        <input type="file" id="localVideoFile" accept="video/*" class="hidden" onchange="loadLocalVideo(this)">
+                    <button class="ibtn" onclick="window.open('https://aminoxdag.github.io/BLACKED-POMF/', '_blank')" title="المكتبة"><i class="fas fa-th-large"></i></button>
+                    <label class="ibtn" title="رفع فيديو من جهازك">
+                        <input type="file" id="localVideoFile" accept="video/*" style="display:none" onchange="loadLocalVideo(this)">
                         <i class="fas fa-file-import"></i>
                     </label>
-
-                    <!-- Filter Drawer Toggle -->
-                    <button onclick="toggleFiltersPanel()" class="filter-toggle-btn" title="تعديل الفلاتر والألوان">
-                        <i class="fas fa-sliders-h"></i>
-                    </button>
-                    
-                    <!-- Search/URL Input -->
-                    <input type="text" id="videoUrl" 
-                           class="url-input"
-                           placeholder="ابحث، الصق رابطاً مباشرًا، أو ارفع ملفاً..." 
-                           autocomplete="off">
-                    
-                    <!-- Play Button -->
-                    <button id="mainActionBtn" onclick="updateSource()" class="play-action-btn">تشغيل</button>
+                    <button class="ibtn" onclick="toggleFiltersPanel()" title="الفلاتر والألوان"><i class="fas fa-sliders-h"></i></button>
+                    <input type="text" id="videoUrl" class="url-input" placeholder="ابحث أو الصق رابط الفيديو..." autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+                    <button id="mainActionBtn" class="go-btn" onclick="updateSource()" title="تشغيل"><i class="fas fa-play"></i></button>
                 </div>
                 <div id="searchResults" class="search-results"></div>
             </div>
-            
-            <!-- Context options -->
-            <div class="w-full flex justify-between items-center px-4">
-                <div class="text-[10px] font-bold tracking-[2px] opacity-30 uppercase">Professional Cinema</div>
-                <div class="flex gap-4 items-center">
-                    <div onclick="cycleAspect()" class="badge-aspect" id="aspectLabel">وضع العرض: FIT</div>
-                    <button onclick="toggleLock()" class="text-white/60 text-xl"><i id="lockIcon" class="fas fa-unlock"></i></button>
-                </div>
+            <div class="subrow">
+                <div onclick="cycleAspect()" class="badge-aspect" id="aspectLabel">وضع العرض: FIT</div>
+                <button onclick="toggleLock()" class="ibtn glass" title="قفل الشاشة"><i id="lockIcon" class="fas fa-unlock"></i></button>
             </div>
         </div>
 
-        <!-- Notification Message Pop-up -->
-        <div id="toastNotification" class="notification">تم الحفظ بنجاح!</div>
-
-        <!-- Bottom Controls Bar -->
-        <div class="p-6">
-            <!-- Timeline details -->
-            <div class="flex justify-between text-[12px] font-mono mb-2 px-1 opacity-70" dir="ltr">
-                <span id="currentTime">00:00</span>
-                <span id="durationTime">00:00</span>
-            </div>
-
-            <!-- Seek Slider container -->
-            <div class="seek-container" id="seekWrapper">
-                <div class="seek-bar">
-                    <div id="progFill"></div>
+        <div class="bottom">
+            <div class="times" dir="ltr"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
+            <div class="seek-container" id="seekWrapper"><div class="seek-bar"><div id="progFill"></div></div></div>
+            <div class="ctrl-wrap" dir="ltr">
+                <div class="row main">
+                    <button class="cbtn sk" onclick="skip(-10)" title="رجوع 10 ثوانٍ"><i class="fas fa-rotate-left"></i><small>10</small></button>
+                    <button class="cbtn" onclick="stepFrame(-1)" title="الإطار السابق"><i class="fas fa-backward-step"></i></button>
+                    <button id="playBtnSmall" class="play-main" onclick="togglePlay()" title="تشغيل / إيقاف"><i class="fas fa-play"></i></button>
+                    <button class="cbtn" onclick="stepFrame(1)" title="الإطار التالي"><i class="fas fa-forward-step"></i></button>
+                    <button class="cbtn sk" onclick="skip(10)" title="تقديم 10 ثوانٍ"><i class="fas fa-rotate-right"></i><small>10</small></button>
                 </div>
-            </div>
-
-            <!-- Functional Playback Keys -->
-            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between mt-5 gap-4">
-                
-                <!-- Left Playback & Navigation Block -->
-                <div class="flex items-center justify-between md:justify-start gap-6 md:gap-10">
-                    <!-- Main Play Action -->
-                    <button onclick="togglePlay()" id="playBtnSmall" class="text-4xl text-white hover:text-orange-400 transition transform active:scale-90">
-                        <i class="fas fa-play"></i>
-                    </button>
-                    <!-- Quick Seek Buttons -->
-                    <button onclick="skip(-10)" class="btn-skip"><i class="fas fa-backward"></i><span>10- ثوانٍ</span></button>
-                    <button onclick="skip(10)" class="btn-skip"><i class="fas fa-forward"></i><span>10+ ثوانٍ</span></button>
-                </div>
-
-                <!-- Frame-by-Frame Controls & Frame Capturing -->
-                <div class="flex items-center justify-center gap-6 border-y md:border-y-0 border-white/10 py-3 md:py-0">
-                    <!-- Previous Frame -->
-                    <button onclick="stepFrame(-1)" class="btn-frame" title="الإطار السابق">
-                        <i class="fas fa-chevron-left"></i>
-                        <span>إطار خلف</span>
-                    </button>
-                    
-                    <!-- Save current frame as PNG with applied filters -->
-                    <button onclick="captureCurrentFrame()" class="btn-capture bg-orange-500/10 border border-orange-500/30 text-orange-400 px-4 py-2 rounded-xl" title="حفظ اللقطة بالفلاتر كـ PNG">
-                        <i class="fas fa-camera text-xl mb-1 text-orange-500"></i>
-                        <span class="font-bold text-[11px]">حفظ إطار بالفلاتر</span>
-                    </button>
-
-                    <!-- Next Frame -->
-                    <button onclick="stepFrame(1)" class="btn-frame" title="الإطار التالي">
-                        <i class="fas fa-chevron-right"></i>
-                        <span>إطار أمام</span>
-                    </button>
-                </div>
-
-                <!-- Right Aspect/Speed/PIP/Fullscreen Configuration block -->
-                <div class="flex items-center justify-between md:justify-end gap-6 md:gap-7">
-                    <!-- Playback Speed -->
-                    <select onchange="video.playbackRate = parseFloat(this.value)" class="bg-white/10 text-[11px] border border-white/10 rounded-full px-4 py-1.5 outline-none cursor-pointer">
-                        <option value="1">1.0x</option>
-                        <option value="1.25">1.25x</option>
-                        <option value="1.5">1.5x</option>
-                        <option value="2">2.0x</option>
-                        <option value="0.5">0.5x (بطيء)</option>
-                        <option value="0.25">0.25x (بطيء جداً)</option>
+                <div class="row sec">
+                    <select class="chip" title="السرعة" onchange="video.playbackRate = parseFloat(this.value)">
+                        <option value="0.25">0.25x</option><option value="0.5">0.5x</option>
+                        <option value="1" selected>1.0x</option><option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option><option value="2">2.0x</option>
                     </select>
-
-                    <!-- Toggle Filters Panel Button -->
-                    <button onclick="toggleFiltersPanel()" title="التحكم بالفلاتر" class="text-white/70 text-2xl hover:text-orange-500 transition">
-                        <i class="fas fa-sliders-h"></i>
-                    </button>
-
-                    <!-- Picture In Picture Toggle -->
-                    <button id="pipBtn" onclick="togglePIP()" title="صورة داخل صورة" class="text-white/70 text-2xl hover:text-orange-500 transition">
-                        <i class="fas fa-window-restore"></i>
-                    </button>
-
-                    <!-- Fullscreen Screen Switch -->
-                    <button onclick="requestFullScreen()" class="text-orange-500 text-3xl hover:scale-110 transition active:scale-95">
-                        <i class="fas fa-expand"></i>
-                    </button>
+                    <button id="muteBtn" class="cbtn s" title="كتم (M)"><i class="fas fa-volume-high"></i></button>
+                    <input type="range" id="volRange" class="filter-input-range vol" min="0" max="1" step="0.05" value="1">
+                    <button id="loopBtn" class="cbtn s" title="تكرار (L)"><i class="fas fa-repeat"></i></button>
+                    <button class="cbtn s accent" onclick="captureCurrentFrame()" title="حفظ لقطة بالفلاتر"><i class="fas fa-camera"></i></button>
+                    <button id="pipBtn" class="cbtn s" onclick="togglePIP()" title="صورة داخل صورة"><i class="fas fa-window-restore"></i></button>
+                    <button class="cbtn s" onclick="requestFullScreen()" title="ملء الشاشة (F)"><i class="fas fa-expand"></i></button>
                 </div>
             </div>
         </div>
     </div>
+    <div id="toastNotification" class="notification"></div>
 
     <!-- 
       NEW GLASSMORPHIC SIDE DRAWER 
@@ -627,7 +623,7 @@
         if (matches.length > 0) {
             searchResults.innerHTML = matches.map(fullLink => {
                 let displayName = fullLink.replace(/https?:\/\/cdn\.cinema-blue\.icu\/blk\//gi, '').replace(/%20/g, ' ');
-                return `<div class="search-item" onclick="selectResult('${fullLink}')">${displayName}</div>`;
+                return `<div class="search-item" data-u="${fullLink.replace(/"/g,'&quot;')}" onclick="selectResult(this.dataset.u)">${displayName}</div>`;
             }).join('');
             searchResults.style.display = 'block';
         } else { searchResults.style.display = 'none'; }
@@ -676,27 +672,6 @@
         }
     }
 
-    // Anti-Freeze & Stream Stall Auto-Recovery System
-    video.addEventListener('stalled', () => {
-        recoverHangingPlayback();
-    });
-
-    video.addEventListener('waiting', () => {
-        // Trigger recovery if waiting state stays frozen for more than 800ms
-        setTimeout(() => {
-            if (video.readyState < 3 && !video.paused) {
-                recoverHangingPlayback();
-            }
-        }, 800);
-    });
-
-    function recoverHangingPlayback() {
-        if (!video.duration || video.paused) return;
-        console.log("Anti-Freeze Activated: Softly nudging playback buffer forward.");
-        // Nudge position forward by 0.15s to bypass stalling segments smoothly
-        video.currentTime = Math.min(video.duration, video.currentTime + 0.15);
-        video.play().catch(e => console.log("Nudge recovery bypassed"));
-    }
 
     // Precise Frame Nav
     function stepFrame(framesCount) {
@@ -707,7 +682,7 @@
             document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-play"></i>';
         }
 
-        const frameTime = 1 / DEFAULT_FPS;
+        const frameTime = 1 / (window.detectedFps || DEFAULT_FPS);
         video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + (framesCount * frameTime)));
         showUI();
     }
@@ -818,21 +793,8 @@
         }, 3500);
     }
 
-    function showUI() {
-        if (isLocked || isTyping) return;
-        ui.classList.remove('ui-hidden');
-        clearTimeout(hideTimer);
-        // Do not auto-hide UI controls when the filter adjust panel is actively open
-        if (!video.paused && !filtersPanel.classList.contains('active')) {
-            hideTimer = setTimeout(() => {
-                if (!isTyping) ui.classList.add('ui-hidden');
-            }, 3000);
-        }
-    }
 
-    document.getElementById('playerContainer').addEventListener('mousemove', showUI);
-    document.getElementById('playerContainer').addEventListener('touchstart', showUI);
-
+    
     function togglePlay() {
         if (video.paused) {
             video.play();
@@ -853,12 +815,6 @@
         }
     });
 
-    video.ontimeupdate = () => {
-        const percent = (video.currentTime / video.duration) * 100;
-        progFill.style.width = percent + '%';
-        document.getElementById('currentTime').innerText = formatTime(video.currentTime);
-        document.getElementById('durationTime').innerText = formatTime(video.duration || 0);
-    };
 
     function formatTime(s) {
         let m = Math.floor(s / 60);
@@ -866,21 +822,6 @@
         return (m < 10 ? '0'+m : m) + ":" + (sec < 10 ? '0'+sec : sec);
     }
 
-    function seek(e) {
-        const rect = seekWrapper.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-        const x = clientX - rect.left;
-        let pos = x / rect.width;
-        if (pos < 0) pos = 0; if (pos > 1) pos = 1;
-        video.currentTime = pos * video.duration;
-    }
-
-    seekWrapper.onmousedown = (e) => {
-        seek(e);
-        window.onmousemove = seek;
-        window.onmouseup = () => window.onmousemove = null;
-    };
-    seekWrapper.ontouchmove = seek;
 
     function cycleAspect() {
         aspectIndex = (aspectIndex + 1) % 3;
@@ -891,17 +832,6 @@
         showUI();
     }
 
-    function updateSource() {
-        const url = urlInput.value.trim();
-        if (url && !url.startsWith("ملف محلي:")) {
-            video.src = url;
-            video.load();
-            video.play().then(() => {
-                document.getElementById('playBtnSmall').innerHTML = '<i class="fas fa-pause"></i>';
-            }).catch(e => console.log("Auto-play blocked or error"));
-            showUI();
-        }
-    }
 
     async function togglePIP() {
         try {
@@ -932,22 +862,6 @@
         showUI();
     }
 
-    function toggleLock() {
-        isLocked = !isLocked;
-        document.getElementById('lockIcon').className = isLocked ? "fas fa-lock text-orange-500" : "fas fa-unlock";
-        if (isLocked) {
-            ui.classList.add('ui-hidden');
-            lockShield.classList.remove('hidden');
-            filtersPanel.classList.remove('active'); // Close side panel when locked
-        } else {
-            lockShield.classList.add('hidden');
-            showUI();
-        }
-    }
-
-    function flashLockHint() {
-        showNotification("الشاشة مؤمنة! قم بإلغاء القفل أولاً للتحكم.");
-    }
 
     video.onloadedmetadata = () => {
         document.getElementById('durationTime').innerText = formatTime(video.duration);
@@ -965,6 +879,316 @@
         if (e.code === 'KeyS') captureCurrentFrame();
         if (e.code === 'KeyG') toggleFiltersPanel();
     };
+
+    /* ================= ترقية المشغل ================= */
+    const $ = id => document.getElementById(id);
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    const playerBox = $('playerContainer');
+    const gHint = $('gHint'), spinner = $('spinner'), gestures = $('gestures');
+    playerBox.appendChild(toastNotification); // كان الإشعار داخل الواجهة المخفية فلا يظهر
+    let dragging = false, dragPos = 0, hintTimer, triedNoCors = false;
+
+    function hint(t, keep) {
+        gHint.textContent = t; gHint.style.opacity = 1;
+        clearTimeout(hintTimer);
+        if (!keep) hintTimer = setTimeout(() => gHint.style.opacity = 0, 700);
+    }
+
+    function showUI() {
+        if (isLocked || isTyping) return;
+        ui.classList.remove('ui-hidden');
+        clearTimeout(hideTimer);
+    }
+
+    /* ---------- شريط التقدم: سحب باللمس/الفأرة + معاينة الإطار ---------- */
+    const bufFill = document.createElement('div'); bufFill.id = 'bufFill';
+    seekWrapper.querySelector('.seek-bar').insertBefore(bufFill, progFill);
+    const pvBox = document.createElement('div'); pvBox.id = 'pvBox';
+    pvBox.innerHTML = '<canvas id="pvCanvas" width="176" height="99"></canvas><span id="pvTime">00:00</span>';
+    seekWrapper.appendChild(pvBox);
+    const pvCanvas = $('pvCanvas'), pvTime = $('pvTime');
+    const pv = document.createElement('video'); // فيديو خفي لاستخراج الإطارات فقط
+    pv.muted = true; pv.playsInline = true; pv.preload = 'auto';
+    let pvBusy = false, pvPending = null;
+
+    function reqPv(t) {
+        if (pvBusy) { pvPending = t; return; }
+        pvBusy = true; pv.currentTime = t;
+        setTimeout(() => { pvBusy = false; }, 1500); // أمان لو لم يصل seeked
+    }
+    pv.addEventListener('seeked', () => {
+        try {
+            pvCanvas.height = Math.round(pvCanvas.width * ((pv.videoHeight / pv.videoWidth) || 9 / 16));
+            pvCanvas.getContext('2d').drawImage(pv, 0, 0, pvCanvas.width, pvCanvas.height);
+        } catch (e) {}
+        pvBusy = false;
+        if (pvPending != null) { const t = pvPending; pvPending = null; reqPv(t); }
+    });
+    video.addEventListener('loadedmetadata', () => {
+        if (pv.src !== video.currentSrc) pv.src = video.currentSrc;
+    });
+
+    function seekRatio(e) {
+        const r = seekWrapper.firstElementChild.getBoundingClientRect();
+        return clamp((e.clientX - r.left) / r.width, 0, 1);
+    }
+    function previewAt(p) {
+        if (!video.duration) return;
+        const w = seekWrapper.clientWidth, t = p * video.duration;
+        pvBox.style.left = clamp(8 + p * (w - 16), 90, w - 90) + 'px';
+        pvTime.textContent = formatTime(t);
+        pvBox.classList.add('show');
+        progFill.style.width = (p * 100) + '%';
+        $('currentTime').innerText = formatTime(t);
+        reqPv(t);
+    }
+    seekWrapper.addEventListener('pointerdown', e => {
+        if (!video.duration) return;
+        dragging = true; dragPos = seekRatio(e);
+        seekWrapper.classList.add('drag');
+        seekWrapper.setPointerCapture(e.pointerId);
+        clearTimeout(hideTimer);
+        previewAt(dragPos);
+    });
+    seekWrapper.addEventListener('pointermove', e => {
+        if (dragging) { dragPos = seekRatio(e); previewAt(dragPos); }
+        else if (e.pointerType === 'mouse') previewAt(seekRatio(e)); // معاينة عند تمرير الفأرة
+    });
+    const endDrag = commit => {
+        if (!dragging) return;
+        dragging = false; seekWrapper.classList.remove('drag');
+        pvBox.classList.remove('show');
+        if (commit && video.duration) video.currentTime = dragPos * video.duration;
+        showUI();
+    };
+    seekWrapper.addEventListener('pointerup', () => endDrag(true));
+    seekWrapper.addEventListener('pointercancel', () => endDrag(false));
+    seekWrapper.addEventListener('pointerleave', e => { if (!dragging) { pvBox.classList.remove('show'); } });
+
+    video.addEventListener('timeupdate', () => {
+        const d = video.duration;
+        if (!d || !isFinite(d)) return;
+        if (!dragging) {
+            progFill.style.width = (video.currentTime / d * 100) + '%';
+            $('currentTime').innerText = formatTime(video.currentTime);
+        }
+        $('durationTime').innerText = formatTime(d);
+        savePos();
+    });
+    video.addEventListener('progress', () => {
+        const b = video.buffered, t = video.currentTime;
+        for (let i = 0; i < b.length; i++) {
+            if (b.start(i) <= t + 0.5 && b.end(i) >= t) { bufFill.style.width = (b.end(i) / video.duration * 100) + '%'; break; }
+        }
+    });
+
+    /* ---------- إيماءات الشاشة ---------- */
+    let tapT = 0, tapTimer, lpTimer, lpOn = false, prevRate = 1, st = null;
+    gestures.addEventListener('pointerdown', e => {
+        gestures.setPointerCapture(e.pointerId);
+        st = { x: e.clientX, y: e.clientY, ct: video.currentTime, br: manualFilters.brightness, vol: video.volume, mode: null, target: 0 };
+        lpTimer = setTimeout(() => {
+            if (!st || st.mode || video.paused) return;
+            lpOn = true; prevRate = video.playbackRate; video.playbackRate = 2; hint('⏩ 2×', true);
+        }, 450);
+    });
+    gestures.addEventListener('pointermove', e => {
+        if (!st) return;
+        const dx = e.clientX - st.x, dy = e.clientY - st.y, W = innerWidth, H = innerHeight;
+        if (!st.mode && Math.hypot(dx, dy) > 16 && !lpOn) {
+            st.mode = Math.abs(dx) > Math.abs(dy) ? 'seek' : (st.x < W / 2 ? 'bri' : 'vol');
+            clearTimeout(lpTimer);
+        }
+        if (st.mode === 'seek' && video.duration) {
+            st.target = clamp(st.ct + dx / W * 90, 0, video.duration);
+            const diff = Math.round(st.target - st.ct);
+            hint(`${formatTime(st.target)}  (${diff >= 0 ? '+' : ''}${diff}s)`, true);
+        } else if (st.mode === 'bri') {
+            const v = Math.round(clamp(st.br - dy / H * 150, 50, 200));
+            $('adjust-brightness').value = v; updateManualFilter('brightness', v);
+            hint('☀ ' + v + '%', true);
+        } else if (st.mode === 'vol') {
+            video.volume = clamp(st.vol - dy / H * 1.3, 0, 1); video.muted = false;
+            hint('🔊 ' + Math.round(video.volume * 100) + '%', true);
+        }
+    });
+    gestures.addEventListener('pointerup', e => {
+        clearTimeout(lpTimer);
+        if (!st) return;
+        const s = st; st = null;
+        if (lpOn) { lpOn = false; video.playbackRate = prevRate; hint('', false); gHint.style.opacity = 0; return; }
+        if (s.mode === 'seek') { video.currentTime = s.target; hint('', false); gHint.style.opacity = 0; return; }
+        if (s.mode) { hint('', false); gHint.style.opacity = 0; return; }
+        // نقرة
+        const now = Date.now(), x = e.clientX / innerWidth, mouse = e.pointerType === 'mouse';
+        if (now - tapT < 300) {
+            clearTimeout(tapTimer); tapT = 0;
+            if (mouse) requestFullScreen();
+            else if (x < .33) { skip(-10); hint('⏪ −10s'); }
+            else if (x > .66) { skip(10); hint('+10s ⏩'); }
+            else togglePlay();
+        } else {
+            tapT = now;
+            tapTimer = setTimeout(() => {
+                tapT = 0;
+                if (filtersPanel.classList.contains('active')) { filtersPanel.classList.remove('active'); return; }
+                if (ui.classList.contains('ui-hidden')) showUI();
+                else ui.classList.add('ui-hidden');
+            }, 300);
+        }
+    });
+    gestures.addEventListener('pointercancel', () => { clearTimeout(lpTimer); if (lpOn) video.playbackRate = prevRate; lpOn = false; st = null; });
+
+    /* ---------- تشغيل/إيقاف + قفل الشاشة (مع زر فك القفل) ---------- */
+    video.addEventListener('play', () => $('playBtnSmall').innerHTML = '<i class="fas fa-pause"></i>');
+    video.addEventListener('pause', () => { $('playBtnSmall').innerHTML = '<i class="fas fa-play"></i>'; showUI(); });
+
+    const unlockBtn = document.createElement('button');
+    unlockBtn.className = 'unlock-btn hidden';
+    unlockBtn.innerHTML = '<i class="fas fa-lock-open"></i> فك القفل';
+    unlockBtn.onclick = () => toggleLock();
+    playerBox.appendChild(unlockBtn);
+    let unlockTimer;
+    function flashLockHint() {
+        unlockBtn.classList.remove('hidden');
+        clearTimeout(unlockTimer);
+        unlockTimer = setTimeout(() => unlockBtn.classList.add('hidden'), 2500);
+    }
+    function toggleLock() {
+        isLocked = !isLocked;
+        $('lockIcon').className = isLocked ? 'fas fa-lock text-orange-500' : 'fas fa-unlock';
+        unlockBtn.classList.add('hidden');
+        if (isLocked) {
+            ui.classList.add('ui-hidden'); lockShield.classList.remove('hidden');
+            filtersPanel.classList.remove('active'); showNotification('الشاشة مقفلة — المس الشاشة لإظهار زر فك القفل');
+        } else { lockShield.classList.add('hidden'); showUI(); }
+    }
+
+    /* ---------- تحميل الرابط مع بديل تلقائي عند مشاكل CORS ---------- */
+    function updateSource() {
+        const url = urlInput.value.trim();
+        if (!url || url.startsWith('ملف محلي:')) return;
+        triedNoCors = false;
+        video.crossOrigin = 'anonymous'; // يسمح بالتقاط الإطارات؛ إن فشل نعيد التحميل بدونه
+        video.src = url; video.load();
+        video.play().catch(() => {});
+        showUI();
+    }
+    video.addEventListener('error', () => {
+        const s = video.getAttribute('src');
+        if (!s) return;
+        if (video.crossOrigin && !triedNoCors && !s.startsWith('blob:')) {
+            triedNoCors = true; video.removeAttribute('crossorigin');
+            video.src = s; video.load(); video.play().catch(() => {});
+            return;
+        }
+        spinner.style.display = 'none';
+        showNotification('تعذّر تشغيل الفيديو. تحقق من الرابط أو صيغة الملف.');
+    });
+
+    /* ---------- مؤشر تحميل + مراقب تجمّد تدريجي ---------- */
+    ['waiting', 'seeking', 'loadstart'].forEach(ev => video.addEventListener(ev, () => spinner.style.display = 'block'));
+    ['playing', 'canplay', 'seeked', 'pause', 'emptied'].forEach(ev => video.addEventListener(ev, () => { if (video.readyState >= 3 || video.paused) spinner.style.display = 'none'; }));
+    let lastT = -1, stuck = 0, stage = 0;
+    setInterval(() => {
+        if (video.paused || video.ended || dragging || video.seeking || !video.currentSrc) { stuck = 0; stage = 0; return; }
+        if (Math.abs(video.currentTime - lastT) < 0.01) {
+            if (++stuck >= 5) {
+                stuck = 0;
+                const t = video.currentTime;
+                if (stage === 0) { stage = 1; video.currentTime = Math.min(video.duration, t + 0.2); video.play().catch(() => {}); }
+                else { // حل أقوى: إعادة تحميل المصدر والعودة لنفس الموضع
+                    stage = 0; const src = video.currentSrc;
+                    video.src = src; video.load();
+                    video.addEventListener('loadedmetadata', () => { video.currentTime = t; video.play().catch(() => {}); }, { once: true });
+                    showNotification('تمت إعادة الاتصال بالفيديو تلقائياً');
+                }
+            }
+        } else { stuck = 0; stage = 0; }
+        lastT = video.currentTime;
+    }, 1000);
+
+    /* ---------- استئناف من آخر موضع ---------- */
+    let lastSave = 0;
+    const posKey = () => 'vlcpos:' + urlInput.value;
+    function savePos() {
+        if (Math.abs(video.currentTime - lastSave) < 5) return;
+        lastSave = video.currentTime;
+        try { localStorage.setItem(posKey(), String(Math.floor(video.currentTime))); } catch (e) {}
+    }
+    video.addEventListener('loadedmetadata', () => {
+        pvBox.classList.remove('show'); bufFill.style.width = '0'; window.detectedFps = null; fpsSamples.length = 0;
+        try {
+            const p = parseFloat(localStorage.getItem(posKey()));
+            if (p > 5 && p < video.duration - 10) { video.currentTime = p; showNotification('تم الاستئناف من ' + formatTime(p)); }
+        } catch (e) {}
+    });
+    video.addEventListener('ended', () => { try { localStorage.removeItem(posKey()); } catch (e) {} });
+
+    /* ---------- اكتشاف معدل الإطارات الحقيقي لخطوة الإطار ---------- */
+    const fpsSamples = []; let lastMT = null;
+    if ('requestVideoFrameCallback' in video) {
+        const cb = (now, m) => {
+            if (lastMT !== null && !video.paused && video.playbackRate === 1) {
+                const dt = m.mediaTime - lastMT;
+                if (dt > 0 && dt < 0.2) {
+                    fpsSamples.push(dt); if (fpsSamples.length > 40) fpsSamples.shift();
+                    if (fpsSamples.length >= 20) window.detectedFps = Math.round(1 / [...fpsSamples].sort((a, b) => a - b)[fpsSamples.length >> 1]);
+                }
+            }
+            lastMT = m.mediaTime; video.requestVideoFrameCallback(cb);
+        };
+        video.requestVideoFrameCallback(cb);
+    }
+
+    /* ---------- الصوت والتكرار ---------- */
+    
+    function toggleMute() { video.muted = !video.muted; }
+    function toggleLoop() { video.loop = !video.loop; $('loopBtn').classList.toggle('ctl-on', video.loop); hint(video.loop ? 'التكرار: مفعّل' : 'التكرار: متوقف'); }
+    $('muteBtn').onclick = toggleMute; $('loopBtn').onclick = toggleLoop;
+    $('volRange').oninput = e => { video.volume = +e.target.value; video.muted = false; };
+    video.addEventListener('volumechange', () => {
+        $('muteBtn').innerHTML = '<i class="fas ' + (video.muted || !video.volume ? 'fa-volume-xmark' : 'fa-volume-high') + '"></i>';
+        $('volRange').value = video.muted ? 0 : video.volume;
+    });
+
+    /* ---------- شاشة مستيقظة + تحكم من إشعارات النظام ---------- */
+    let wake = null;
+    async function wakeSet(on) {
+        try { if (on && 'wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); else if (wake) { await wake.release(); wake = null; } } catch (e) {}
+    }
+    video.addEventListener('play', () => wakeSet(true));
+    video.addEventListener('pause', () => wakeSet(false));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && !video.paused) wakeSet(true); });
+    if ('mediaSession' in navigator) {
+        const ms = navigator.mediaSession;
+        ms.setActionHandler('play', () => video.play());
+        ms.setActionHandler('pause', () => video.pause());
+        ms.setActionHandler('seekbackward', () => skip(-10));
+        ms.setActionHandler('seekforward', () => skip(10));
+        video.addEventListener('loadedmetadata', () => { ms.metadata = new MediaMetadata({ title: decodeURIComponent((urlInput.value.split('/').pop() || 'VLC Ultimate Pro')) }); });
+    }
+
+    /* ---------- اختصارات لوحة المفاتيح ---------- */
+    window.onkeydown = e => {
+        if (document.activeElement === urlInput) return;
+        const k = e.code;
+        if (k === 'Space' || k === 'KeyK') { e.preventDefault(); togglePlay(); }
+        else if (k === 'KeyF') requestFullScreen();
+        else if (k === 'KeyP') togglePIP();
+        else if (k === 'ArrowRight') { skip(e.shiftKey ? 30 : 10); hint('+' + (e.shiftKey ? 30 : 10) + 's'); }
+        else if (k === 'ArrowLeft') { skip(e.shiftKey ? -30 : -10); hint('−' + (e.shiftKey ? 30 : 10) + 's'); }
+        else if (k === 'ArrowUp') { e.preventDefault(); video.volume = clamp(video.volume + .05, 0, 1); hint('🔊 ' + Math.round(video.volume * 100) + '%'); }
+        else if (k === 'ArrowDown') { e.preventDefault(); video.volume = clamp(video.volume - .05, 0, 1); hint('🔊 ' + Math.round(video.volume * 100) + '%'); }
+        else if (k === 'KeyM') toggleMute();
+        else if (k === 'KeyL') toggleLoop();
+        else if (k === 'Comma' || k === 'BracketLeft') stepFrame(-1);
+        else if (k === 'Period' || k === 'BracketRight') stepFrame(1);
+        else if (k === 'KeyS') captureCurrentFrame();
+        else if (k === 'KeyG') toggleFiltersPanel();
+        else if (/^Digit[0-9]$/.test(k) && video.duration) { video.currentTime = video.duration * (+k[5] / 10); }
+    };
+
 </script>
 </body>
 </html>
